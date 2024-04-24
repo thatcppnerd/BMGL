@@ -15,5 +15,5 @@ struct PCI_DeviceInfo
 }
 
 struct PCI_Architecture BMGL_PCI_GetArchitecture(void);
-struct PCI_DeviceInfo   BMGL_PCI_GetDeviceInfo();
+struct PCI_DeviceInfo   BMGL_PCI_GetDeviceInfo(void);
 #endif
