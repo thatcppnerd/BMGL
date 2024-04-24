@@ -10,8 +10,9 @@ struct PCI_Arch
 
 struct PCI_DeviceInfo
 {
-    unsigned 
-    unsigned short vendor;
+    unsigned int functions;
+
+    unsigned short device, vendor;
 }
 
 struct PCI_Architecture BMGL_PCI_GetArchitecture(void);
