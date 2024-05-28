@@ -4,10 +4,10 @@
 ; push lba (dword)
 ; push count (word, limit = 255)
 __read_disk:
-    pop word [__rd_count]
-    pop dword [__rd_lba]
-    pop dword [__rd_dest]
-    __read_disk_start:
+    push ebp
+    mov ebp, esp
+    sub ebp, 12 ; 2 dwords, 2 words
+    __rd_start:
         ; nop command
         mov dx, 0x1F7
         xor eax, eax
@@ -18,11 +18,11 @@ __read_disk:
         out dx, al
 
         inc dx ; 0x1F2
-        mov ax, word [__rd_count] ; get count
+        mov ax, word [ebp - 2] ; get count
         out dx, al
 
         inc dx ; 0x1F3
-        mov eax, dword [__rd_lba]; get lba
+        mov eax, dword [ebp - 6]; get lba
         out dx, al
 
         inc dx ; 0x1F4
@@ -46,12 +46,12 @@ __read_disk:
         mov ecx, 15
         rep in al, dx
 
-        mov word [timeout], 0
+        mov word [ebp - 12], 0 ; init timeout
 
         __rd_wait:
-            inc word [timeout] ; ++timeout
+            inc word [ebp - 12] ; ++timeout
             ; check timeout
-            cmp word [timeout], 0
+            cmp word [ebp - 12], 0
             jne __rd_still_time
 
             __rd_no_time:
@@ -69,7 +69,7 @@ __read_disk:
                 xor eax, eax
                 out dx, al
 
-                jmp __read_disk_start
+                jmp __rd_start
 
 
             __rd_still_time:
@@ -80,21 +80,16 @@ __read_disk:
 
         __rd_ready: ; read in data
             mov eax, 256 ; 1 sector = 256 words
-            mov cx, word [__rd_count]
+            mov cx, word [ebp - 6]
             mul cx ; 256 * count
 
             mov cx, ax
-            dec cx
             mov dx, 0x1F0
-            mov edi, dword [__rd_dest]
+            mov edi, dword [ebp - 10]
             rep insw ; load
 
+            pop ebp
             ret
 
 
-
-__rd_dest :     dd 0 
-__rd_lba :      dd 0
-__rd_count :    dw 0
-timeout: dw 0
 
