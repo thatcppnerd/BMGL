@@ -88,6 +88,8 @@ __read_disk:
             mov edi, dword [ebp - 10]
             rep insw ; load
 
+            mov eax, 0 ; return code
+            
             pop ebp
             ret
 
