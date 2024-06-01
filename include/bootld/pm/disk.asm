@@ -6,9 +6,9 @@
 __read_disk:
     push ebp
     mov ebp, esp
-    sub ebp, 12 ; 2 dwords, 2 words
+    add ebp, 8
     __rd_start:
-        ; nop command
+        ; ata nop command
         mov dx, 0x1F7
         xor eax, eax
         out dx, al
@@ -18,11 +18,11 @@ __read_disk:
         out dx, al
 
         inc dx ; 0x1F2
-        mov ax, word [ebp - 2] ; get count
+        mov ax, word [ebp + 0] ; get count
         out dx, al
 
         inc dx ; 0x1F3
-        mov eax, dword [ebp - 6]; get lba
+        mov eax, dword [ebp + 2]; get lba
         out dx, al
 
         inc dx ; 0x1F4
@@ -46,12 +46,12 @@ __read_disk:
         mov ecx, 15
         rep in al, dx
 
-        mov word [ebp - 12], 0 ; init timeout
+        mov word [ebp + 10], 0 ; init timeout
 
         __rd_wait:
-            inc word [ebp - 12] ; ++timeout
+            inc word [ebp + 10] ; ++timeout
             ; check timeout
-            cmp word [ebp - 12], 0
+            cmp word [ebp + 10], 0
             jne __rd_still_time
 
             __rd_no_time:
@@ -80,13 +80,15 @@ __read_disk:
 
         __rd_ready: ; read in data
             mov eax, 256 ; 1 sector = 256 words
-            mov cx, word [ebp - 6]
+            mov cx, word [ebp + 2]
             mul cx ; 256 * count
 
             mov cx, ax
             mov dx, 0x1F0
-            mov edi, dword [ebp - 10]
+            mov edi, dword [ebp + 6]
             rep insw ; load
+
+            mov word [ebp + 10], 0 ; reset memory location
 
             mov eax, 0 ; return code
             
